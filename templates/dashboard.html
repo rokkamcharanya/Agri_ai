@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriAI - Farmer Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-body bg-light">
+
+    <!-- 1. DASHBOARD HEADER -->
+    <header class="navbar navbar-expand-lg navbar-dark bg-gradient-agri sticky-top shadow-sm py-2.5">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center fw-bold fs-4" href="#">
+                <span class="fs-3 me-2">🌱</span> AgriAI
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <div class="ms-auto d-flex flex-wrap align-items-center gap-3 mt-3 mt-lg-0">
+                    
+                    <!-- Language Selection Dropdown -->
+                    <div class="lang-selector-wrapper d-flex align-items-center bg-white bg-opacity-20 rounded-pill px-3 py-1 text-white border border-white border-opacity-25">
+                        <i class="bi bi-globe me-2"></i>
+                        <select id="langSelect" class="form-select form-select-sm bg-transparent border-0 text-white fw-medium shadow-none cursor-pointer">
+                            <option value="en" selected class="text-dark">English</option>
+                            <option value="te" class="text-dark">తెలుగు (Telugu)</option>
+                            <option value="hi" class="text-dark">हिन्दी (Hindi)</option>
+                        </select>
+                    </div>
+
+                    <!-- User Profile Badge -->
+                    <div class="user-badge d-flex align-items-center bg-white bg-opacity-20 rounded-pill px-3 py-1 text-white border border-white border-opacity-25">
+                        <i class="bi bi-person-circle fs-5 me-2"></i>
+                        <span class="fw-semibold me-1" id="navUserName">{{ user.name }}</span>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center">
+                        <i class="bi bi-box-arrow-right me-1"></i> <span data-i18n="logout">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container py-4">
+
+        <!-- 2. DASHBOARD WELCOME SECTION -->
+        <section class="welcome-section mb-4">
+            <div class="card bg-white border-0 shadow-sm rounded-4 p-4 welcome-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="fw-bold text-dark mb-1" id="greetingText">Good Morning, {{ user.name.split(' ')[0] }} 👋</h2>
+                        <p class="text-muted lead fs-6 m-0" data-i18n="welcomeSub">Here's your farm health overview</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill border border-success-subtle">
+                            <i class="bi bi-shield-check me-1"></i> AgriAI Decision Support Active
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TOP SUMMARY CARDS -->
+        <section class="top-cards-section mb-4">
+            <div class="row g-3">
+                <!-- CARD 1: CROP -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 summary-card bg-white">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="card-icon-box bg-emerald-light rounded-circle p-3 me-3 text-emerald">
+                                <span class="fs-2">🌱</span>
+                            </div>
+                            <div>
+                                <span class="text-uppercase text-muted fw-bold small tracking-wider" data-i18n="cardCrop">CROP</span>
+                                <h3 class="fw-bold text-dark m-0 mt-1" id="summaryCropName">{{ crop_name }}</h3>
+                                <small class="text-muted" id="summaryVariety">Variety: {{ farm.variety if farm else 'BPT 5204' }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: CROP HEALTH -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 summary-card bg-white">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="card-icon-box bg-danger-subtle rounded-circle p-3 me-3 text-danger">
+                                <span class="fs-2">❤️</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="text-uppercase text-muted fw-bold small tracking-wider" data-i18n="cardHealth">CROP HEALTH</span>
+                                <div class="d-flex align-items-baseline mt-1">
+                                    <h3 class="fw-bold text-dark m-0 me-2" id="summaryHealthScore">{{ health_score }}%</h3>
+                                    <span class="badge bg-success rounded-pill px-2.5 py-1" id="summaryHealthBadge">{{ health_status }}</span>
+                                </div>
+                                <small class="text-muted" id="summaryHealthDesc">Based on AI Leaf Scan</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 3: CROP LOCATION -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 summary-card bg-white">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="card-icon-box bg-primary-subtle rounded-circle p-3 me-3 text-primary">
+                                <span class="fs-2">📍</span>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <span class="text-uppercase text-muted fw-bold small tracking-wider" data-i18n="cardLocation">CROP LOCATION</span>
+                                <h5 class="fw-bold text-dark m-0 mt-1 text-truncate" id="summaryLocation">{{ location_name }}</h5>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5" id="btnDetectLocation" onclick="detectGPSLocation()">
+                                        <i class="bi bi-crosshair me-1"></i> <span data-i18n="detectGPS">GPS Detect</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-link text-muted p-0 text-decoration-none ms-2" data-bs-toggle="modal" data-bs-target="#locationModal" data-i18n="editLoc">
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. UPCOMING FARM PROBLEMS -->
+        <section class="risks-section mb-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+                <div class="card-header bg-white border-0 p-4 pb-2 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="fw-bold text-dark m-0" data-i18n="upcomingProblemsTitle">⚠️ UPCOMING FARM PROBLEMS</h4>
+                        <p class="text-muted small m-0 mt-1" data-i18n="upcomingProblemsSub">Predictive risks calculated from localized crop, weather, and soil telemetry</p>
+                    </div>
+                    <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-1.5 rounded-pill fw-semibold">
+                        <i class="bi bi-cpu-fill me-1"></i> Risk Engine Active
+                    </span>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <div class="row g-3" id="riskAlertsContainer">
+                        {% for risk in risks %}
+                        <div class="col-md-4">
+                            <div class="risk-card p-3.5 rounded-4 border border-1 h-100 border-{{ risk.color_code }}-subtle bg-{{ risk.color_code }}-light">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge rounded-pill bg-{{ risk.color_code }} px-2.5 py-1 text-white fw-bold">{{ risk.severity }}</span>
+                                    <span class="text-muted small fw-semibold"><i class="bi bi-clock me-1"></i>{{ risk.timing }}</span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1.5">{{ risk.title }}</h6>
+                                <p class="small text-secondary mb-2">{{ risk.description }}</p>
+                                <div class="action-box p-2 bg-white rounded-3 border border-light shadow-2xs">
+                                    <small class="fw-bold text-success d-block"><i class="bi bi-arrow-right-circle-fill me-1"></i>Recommendation:</small>
+                                    <small class="text-dark">{{ risk.recommendation }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. CROP ANALYSIS + WEATHER SECTION -->
+        <section class="analysis-weather-section mb-4">
+            <div class="row g-4">
+                
+                <!-- CROP IMAGE ANALYSIS -->
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+                        <div class="card-header bg-white border-0 p-4 pb-2">
+                            <h4 class="fw-bold text-dark m-0" data-i18n="cropAnalysisTitle">📷 CROP ANALYSIS</h4>
+                            <p class="text-muted small m-0 mt-1" data-i18n="cropAnalysisSub">Upload field or leaf image to run AgriAI agronomic scanner</p>
+                        </div>
+                        <div class="card-body p-4 pt-2">
+                            
+                            <!-- Image Upload Box -->
+                            <div class="upload-dropzone p-4 text-center rounded-4 border-2 border-dashed border-success-subtle bg-light-mint mb-3" id="dropzone">
+                                <input type="file" id="cropImageInput" accept="image/*" class="d-none">
+                                
+                                <div id="uploadPlaceholder">
+                                    <div class="fs-1 text-success mb-2"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                                    <h6 class="fw-bold text-dark" data-i18n="uploadPrompt">Drag & drop crop image here or click to browse</h6>
+                                    <p class="small text-muted mb-3" data-i18n="uploadFormats">Supports PNG, JPG, JPEG, WEBP (Max 16MB)</p>
+                                    <button class="btn btn-agri-primary px-4 rounded-pill shadow-sm" onclick="document.getElementById('cropImageInput').click()">
+                                        <i class="bi bi-image me-1"></i> <span data-i18n="btnChooseImage">Choose Leaf Image</span>
+                                    </button>
+                                </div>
+
+                                <div id="uploadPreview" class="d-none text-center">
+                                    <img id="previewImg" src="" alt="Crop Preview" class="img-fluid rounded-3 mb-3 border shadow-sm max-h-200">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-danger btn-sm rounded-pill px-3" onclick="removeSelectedImage()">
+                                            <i class="bi bi-trash me-1"></i> <span data-i18n="btnRemove">Remove</span>
+                                        </button>
+                                        <button class="btn btn-agri-primary btn-sm rounded-pill px-4" id="btnAnalyze" onclick="analyzeCropImage()">
+                                            <i class="bi bi-search me-1"></i> <span data-i18n="btnAnalyzeCrop">🔍 Analyze Crop</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Analysis Loading Spinner -->
+                            <div id="analysisSpinner" class="d-none text-center py-4">
+                                <div class="spinner-border text-success mb-2" role="status"></div>
+                                <p class="text-success fw-semibold" data-i18n="scanningMsg">AgriAI model analyzing leaf cellular patterns & spot density...</p>
+                            </div>
+
+                            <!-- Analysis Results Output Card -->
+                            <div id="analysisResult" class="analysis-results-box p-3.5 bg-light rounded-4 border">
+                                <div class="row align-items-center mb-3">
+                                    <div class="col-auto text-center">
+                                        <!-- Health Score Ring -->
+                                        <div class="health-circle-wrapper position-relative d-inline-block">
+                                            <svg class="health-circle-svg" width="90" height="90" viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6e6e6" stroke-width="3"/>
+                                                <path class="circle-stroke" id="scoreCirclePath" stroke-dasharray="86, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2d6a4f" stroke-width="3.2"/>
+                                            </svg>
+                                            <div class="circle-text position-absolute top-50 start-50 translate-middle text-center">
+                                                <span class="fs-5 fw-bold text-dark d-block leading-none" id="resultScoreVal">{{ latest_analysis.health_score if latest_analysis else 86 }}%</span>
+                                                <small class="text-muted micro-text">HEALTH</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="fw-bold text-dark mb-0" id="resultCropVal">{{ latest_analysis.crop_name if latest_analysis else crop_name }}</h5>
+                                                <span class="badge bg-success me-1" id="resultCondVal">{{ latest_analysis.condition if latest_analysis else 'Healthy' }}</span>
+                                                <span class="badge bg-info text-dark" id="resultRiskVal">Risk: {{ latest_analysis.disease_risk if latest_analysis else 'Medium' }}</span>
+                                            </div>
+                                            <span class="badge bg-secondary-subtle text-secondary small" id="resultConfidence">Conf: {{ latest_analysis.confidence if latest_analysis else 94 }}%</span>
+                                        </div>
+                                        <p class="small text-muted mt-2 mb-0 fw-semibold" id="resultDisease">Disease: {{ latest_analysis.disease if latest_analysis else 'Mild Leaf Spot Detected' }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="recommendation-card p-3 bg-white rounded-3 border-start border-4 border-success shadow-2xs">
+                                    <h6 class="fw-bold text-success small text-uppercase m-0 mb-1"><i class="bi bi-lightbulb-fill me-1"></i>Agronomist Recommendation</h6>
+                                    <p class="small text-dark m-0" id="resultRec">{{ latest_analysis.recommendation if latest_analysis else 'Continue regular monitoring and maintain proper irrigation.' }}</p>
+                                </div>
+
+                                <div class="text-end mt-2">
+                                    <small class="text-muted micro-text"><i class="bi bi-info-circle me-1"></i>Disclaimer: AI decision support tool. Consult a certified agronomist if symptoms worsen.</small>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WEATHER SECTION -->
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+                        <div class="card-header bg-white border-0 p-4 pb-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="fw-bold text-dark m-0" data-i18n="weatherTitle">🌦️ WEATHER</h4>
+                                <p class="text-muted small m-0 mt-1" id="weatherLocHeader">{{ weather.location }}</p>
+                            </div>
+                            {% if weather.is_live %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" data-i18n="liveWeather">Live Weather API</span>
+                            {% else %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill" data-i18n="demoWeather">Demo Weather</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body p-4 pt-2">
+                            
+                            <!-- Main Weather Hero Box -->
+                            <div class="weather-hero p-3.5 rounded-4 bg-gradient-weather text-white mb-3 shadow-2xs">
+                                <div class="row align-items-center">
+                                    <div class="col-7">
+                                        <div class="d-flex align-items-baseline">
+                                            <h1 class="display-5 fw-bold m-0" id="wTemp">{{ weather.temperature }}</h1>
+                                            <span class="fs-4 ms-1">°C</span>
+                                        </div>
+                                        <p class="fw-semibold mb-0" id="wCondition">{{ weather.condition }}</p>
+                                    </div>
+                                    <div class="col-5 text-end">
+                                        <span class="fs-1">🌦️</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Weather Telemetry Grid -->
+                            <div class="row g-2 text-center">
+                                <div class="col-4">
+                                    <div class="p-2.5 bg-light rounded-3">
+                                        <small class="text-muted d-block" data-i18n="wHumidity">💧 Humidity</small>
+                                        <strong class="text-dark fs-6" id="wHumidity">{{ weather.humidity }}%</strong>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2.5 bg-light rounded-3">
+                                        <small class="text-muted d-block" data-i18n="wRainProb">🌧️ Rain Prob</small>
+                                        <strong class="text-dark fs-6" id="wRainProb">{{ weather.rain_probability }}%</strong>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2.5 bg-light rounded-3">
+                                        <small class="text-muted d-block" data-i18n="wWind">💨 Wind</small>
+                                        <strong class="text-dark fs-6" id="wWind">{{ weather.wind_speed }} km/h</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Weather Alert Box -->
+                            <div class="alert alert-warning border-0 rounded-3 mt-3 mb-0 p-3 d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 text-warning me-3"></i>
+                                <div>
+                                    <strong class="d-block small text-uppercase" data-i18n="weatherAlertTitle">⚠️ Weather Alert</strong>
+                                    <span class="small text-dark" id="wAlertText">{{ weather.alert }}</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 6. CROP & WEATHER ANALYSIS GRAPH -->
+        <section class="graph-section mb-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-header bg-white border-0 p-4 pb-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <h4 class="fw-bold text-dark m-0" data-i18n="chartTitle">📊 CROP & WEATHER ANALYSIS</h4>
+                        <p class="text-muted small m-0 mt-1" data-i18n="chartSub">7-Day historical trend analysis of crop health score and climate metrics</p>
+                    </div>
+                    <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border" role="group">
+                        <button type="button" class="btn btn-sm btn-agri-primary rounded-pill px-3 active" id="btnChartHealth" onclick="switchChartMetric('health')">❤️ <span data-i18n="btnChartHealth">Crop Health</span></button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-3" id="btnChartTemp" onclick="switchChartMetric('temp')">🌡️ <span data-i18n="btnChartTemp">Temperature</span></button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-3" id="btnChartRain" onclick="switchChartMetric('rain')">🌧️ <span data-i18n="btnChartRain">Rainfall</span></button>
+                    </div>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <div class="chart-container relative-height-300">
+                        <canvas id="cropHealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. AI AGRONOMIST -->
+        <section class="ai-agronomist-section mb-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-header bg-white border-0 p-4 pb-2">
+                    <h4 class="fw-bold text-dark m-0" data-i18n="agronomistTitle">🤖 AI AGRONOMIST</h4>
+                    <p class="text-muted small m-0 mt-1" data-i18n="agronomistSub">Ask questions about your crop, disease symptoms, soil nutrients, or weather</p>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    
+                    <!-- Text & Voice Question Input -->
+                    <div class="input-group input-group-lg shadow-sm rounded-4 overflow-hidden mb-3 border">
+                        <input type="text" id="agronomistQueryInput" class="form-control border-0 ps-3 fs-6" placeholder="Ask e.g. Why are my paddy leaves turning yellow?" data-i18n-placeholder="aiPlaceholder">
+                        <button class="btn btn-light border-start px-3 text-danger" id="btnVoiceInput" onclick="startAgronomistVoiceInput()" title="Speak Question">
+                            <i class="bi bi-mic-fill fs-5"></i>
+                        </button>
+                        <button class="btn btn-agri-primary px-4 fw-semibold" id="btnAskAI" onclick="askAIAgronomist()">
+                            <i class="bi bi-send-fill me-1"></i> <span data-i18n="btnAskAI">Ask AI</span>
+                        </button>
+                    </div>
+
+                    <!-- Question Suggestions Badges -->
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="text-muted small fw-semibold me-1" data-i18n="suggestedQueries">Try asking:</span>
+                        <button class="badge bg-light text-dark border hover-badge cursor-pointer" onclick="setQueryText('Why are my paddy leaves turning yellow?')">Why are leaves turning yellow?</button>
+                        <button class="badge bg-light text-dark border hover-badge cursor-pointer" onclick="setQueryText('Will it rain tomorrow in Vijayawada?')">Will it rain tomorrow?</button>
+                        <button class="badge bg-light text-dark border hover-badge cursor-pointer" onclick="setQueryText('How to treat fungal leaf blast in Paddy?')">How to treat leaf blast?</button>
+                    </div>
+
+                    <!-- AI Response Box -->
+                    <div id="aiResponseBox" class="p-3.5 rounded-4 bg-light-mint border border-success-subtle d-none">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="fs-4 me-2">🌱</span>
+                            <div>
+                                <h6 class="fw-bold text-dark m-0" data-i18n="agronomistResponseHeader">AgriAI Advisor Response</h6>
+                                <small class="text-muted" id="aiRespLang">Language: English</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-success rounded-circle ms-auto" onclick="speakText(document.getElementById('aiRespText').innerText)" title="Listen to Answer">
+                                <i class="bi bi-volume-up-fill"></i>
+                            </button>
+                        </div>
+                        <p class="text-dark fs-6 m-0" id="aiRespText"></p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. VOICE CROP REPORT -->
+        <section class="voice-report-section mb-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-gradient-voice text-white p-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h3 class="fw-bold mb-1" data-i18n="voiceTitle">🎙️ VOICE CROP REPORT</h3>
+                        <p class="text-white-80 lead fs-6 mb-3" data-i18n="voiceSub">Ask about your crop using your voice. AI responds in your selected language (English, Telugu, Hindi).</p>
+                        
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <!-- Large Mic Button -->
+                            <button class="btn btn-light text-success fw-bold rounded-pill px-4 py-2.5 shadow-sm d-flex align-items-center" id="btnMainMic" onclick="toggleVoiceCommand()">
+                                <i class="bi bi-mic-fill fs-4 me-2 text-danger animate-pulse" id="micIcon"></i>
+                                <span id="micBtnText" data-i18n="btnStartVoice">🎤 Start Voice Command</span>
+                            </button>
+
+                            <!-- Listen to Report Button -->
+                            <button class="btn btn-outline-light rounded-pill px-4 py-2.5 fw-semibold d-flex align-items-center" id="btnListenReport" onclick="playVoiceCropReport()">
+                                <i class="bi bi-volume-up-fill fs-4 me-2"></i>
+                                <span data-i18n="btnListenReport">🔊 Listen to Report</span>
+                            </button>
+                        </div>
+
+                        <!-- Live Speech Transcript Box -->
+                        <div id="voiceTranscriptBox" class="mt-3 p-3 bg-white bg-opacity-20 rounded-3 border border-white border-opacity-25 d-none">
+                            <small class="text-white-50 d-block uppercase-text" data-i18n="voiceRecognized">Farmer Spoke:</small>
+                            <p class="fw-semibold m-0 fs-6 text-warning" id="speechTranscriptText">...</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                        <div class="voice-waveform-graphic p-3 bg-white bg-opacity-10 rounded-circle d-inline-block">
+                            <span class="display-3">🗣️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. CURRENT MARKET PRICES -->
+        <section class="market-section mb-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-header bg-white border-0 p-4 pb-2 d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold text-dark m-0" data-i18n="marketTitle">💰 CURRENT MARKET PRICES</h4>
+                        <p class="text-muted small m-0 mt-1">
+                            📍 <span id="marketNameText">{{ market_data.market_name }}</span> | 🔄 <span data-i18n="updatedToday">Updated: Today</span>
+                        </p>
+                    </div>
+                    {% if market_data.is_demo %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">Demo Market Data</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-4 pt-2">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle rounded-3 overflow-hidden border mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" data-i18n="thCrop">Crop</th>
+                                    <th scope="col" data-i18n="thVariety">Variety</th>
+                                    <th scope="col" data-i18n="thPrice">Price / Qtl</th>
+                                    <th scope="col" data-i18n="thTrend">Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marketTableBody">
+                                {% for item in market_data.prices %}
+                                <tr class="{% if item.is_user_crop %}table-success border-start border-4 border-success fw-bold{% endif %}">
+                                    <td>
+                                        <span class="me-2">
+                                            {% if item.crop == 'Paddy' %}🌾{% elif item.crop == 'Maize' %}🌽{% elif item.crop == 'Chilli' %}🌶️{% elif item.crop == 'Groundnut' %}🥜{% elif item.crop == 'Cotton' %}☁️{% else %}🌱{% endif %}
+                                        </span>
+                                        {{ item.crop }}
+                                        {% if item.is_user_crop %}
+                                            <span class="badge bg-success rounded-pill ms-2" data-i18n="badgeYourCrop">Your Crop</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted">{{ item.variety }}</td>
+                                    <td class="fw-bold text-dark">{{ item.formatted_price }}</td>
+                                    <td>
+                                        {% if item.is_positive %}
+                                            <span class="badge bg-success-subtle text-success px-2.5 py-1">📈 {{ item.trend }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger px-2.5 py-1">📉 {{ item.trend }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-success rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#marketModal">
+                            <i class="bi bi-search me-1"></i> <span data-i18n="btnViewMoreMarket">🔍 View More Market Prices</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Location Modal -->
+    <div class="modal fade" id="locationModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">📍 Select Farm Location</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="manualLocationSelect" class="form-label fw-semibold">Select Region / Mandi</label>
+                        <select id="manualLocationSelect" class="form-select bg-light">
+                            <option value="Vijayawada, Andhra Pradesh" selected>Vijayawada, Andhra Pradesh</option>
+                            <option value="Guntur, Andhra Pradesh">Guntur, Andhra Pradesh</option>
+                            <option value="Eluru, Andhra Pradesh">Eluru, Andhra Pradesh</option>
+                            <option value="Warangal, Telangana">Warangal, Telangana</option>
+                            <option value="Khammam, Telangana">Khammam, Telangana</option>
+                            <option value="Karnal, Haryana">Karnal, Haryana</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="manualCropSelect" class="form-label fw-semibold">Select Current Crop</label>
+                        <select id="manualCropSelect" class="form-select bg-light">
+                            <option value="Paddy" {% if crop_name == 'Paddy' %}selected{% endif %}>🌾 Paddy</option>
+                            <option value="Cotton" {% if crop_name == 'Cotton' %}selected{% endif %}>☁️ Cotton</option>
+                            <option value="Chilli" {% if crop_name == 'Chilli' %}selected{% endif %}>🌶️ Chilli</option>
+                            <option value="Maize" {% if crop_name == 'Maize' %}selected{% endif %}>🌽 Maize</option>
+                            <option value="Groundnut" {% if crop_name == 'Groundnut' %}selected{% endif %}>🥜 Groundnut</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-agri-primary w-100 py-2 fw-semibold rounded-pill" onclick="saveManualLocation()">
+                        Save Farm Location & Crop
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Market Modal -->
+    <div class="modal fade" id="marketModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">💰 State Agricultural Market Rates</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">Live rates sourced from Agmarknet API directory (Demo Mode)</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Market Center</th>
+                                    <th>Commodity</th>
+                                    <th>Variety</th>
+                                    <th>Min Price</th>
+                                    <th>Max Price</th>
+                                    <th>Modal Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Vijayawada</td><td>Paddy</td><td>BPT 5204</td><td>₹2,200</td><td>₹2,450</td><td>₹2,350/Qtl</td></tr>
+                                <tr><td>Guntur</td><td>Chilli</td><td>Teja Red</td><td>₹8,000</td><td>₹9,100</td><td>₹8,500/Qtl</td></tr>
+                                <tr><td>Eluru</td><td>Groundnut</td><td>Bold</td><td>₹5,900</td><td>₹6,400</td><td>₹6,200/Qtl</td></tr>
+                                <tr><td>Warangal</td><td>Cotton</td><td>H4 Long</td><td>₹6,800</td><td>₹7,400</td><td>₹7,100/Qtl</td></tr>
+                                <tr><td>Khammam</td><td>Maize</td><td>Yellow</td><td>₹1,950</td><td>₹2,200</td><td>₹2,100/Qtl</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pass backend initial variables to JS safely -->
+    <script>
+        window.AGRI_CONFIG = {
+            cropName: "{{ crop_name }}",
+            locationName: "{{ location_name }}",
+            healthScore: {{ health_score }},
+            userName: "{{ user.name }}"
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/crop.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/voice.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

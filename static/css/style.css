@@ -1,0 +1,156 @@
+:root {
+    --agri-primary: #1b4332;
+    --agri-secondary: #2d6a4f;
+    --agri-accent: #52b788;
+    --agri-light-mint: #f4f9f4;
+    --agri-card-border: #d8f3dc;
+    --agri-text-dark: #1f2937;
+    --agri-text-muted: #6b7280;
+    --font-outfit: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+    font-family: var(--font-outfit);
+    color: var(--agri-text-dark);
+    background-color: #f8faf9;
+}
+
+/* Gradients */
+.bg-gradient-agri {
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 60%, #40916c 100%);
+}
+
+.bg-gradient-weather {
+    background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+}
+
+.bg-gradient-voice {
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #1e5128 100%);
+}
+
+.bg-light-mint {
+    background-color: var(--agri-light-mint);
+}
+
+.text-emerald {
+    color: #2d6a4f;
+}
+
+.bg-emerald-light {
+    background-color: #e8f5e9;
+}
+
+/* Buttons */
+.btn-agri-primary {
+    background-color: var(--agri-secondary);
+    color: #ffffff;
+    border: none;
+    transition: all 0.25s ease-in-out;
+}
+
+.btn-agri-primary:hover, .btn-agri-primary:focus {
+    background-color: var(--agri-primary);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+}
+
+/* Cards & Shadows */
+.summary-card, .welcome-card, .risk-card, .analysis-results-box {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06) !important;
+}
+
+.auth-card {
+    border-radius: 1.25rem !important;
+}
+
+.card-icon-box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Risk Cards */
+.bg-red-light { background-color: #fef2f2; }
+.border-red-subtle { border-color: #fecaca !important; }
+.bg-red { background-color: #dc2626 !important; }
+
+.bg-orange-light { background-color: #fff7ed; }
+.border-orange-subtle { border-color: #ffedd5 !important; }
+.bg-orange { background-color: #ea580c !important; }
+
+.bg-yellow-light { background-color: #fefce8; }
+.border-yellow-subtle { border-color: #fef08a !important; }
+.bg-yellow { background-color: #d97706 !important; }
+
+.bg-green-light { background-color: #f0fdf4; }
+.border-green-subtle { border-color: #bbf7d0 !important; }
+.bg-green { background-color: #16a34a !important; }
+
+/* SVG Health Circle */
+.health-circle-svg {
+    transform: rotate(-90deg);
+}
+
+.circle-stroke {
+    transition: stroke-dasharray 0.8s ease-in-out;
+}
+
+.micro-text {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.leading-none {
+    line-height: 1;
+}
+
+.max-h-200 {
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.relative-height-300 {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Mic pulse animation */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pulse {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Badges hover */
+.hover-badge:hover {
+    background-color: #e2e8f0 !important;
+    transform: translateY(-1px);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .display-5 {
+        font-size: 2.2rem;
+    }
+    .welcome-card {
+        padding: 1.25rem !important;
+    }
+}
